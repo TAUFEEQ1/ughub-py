@@ -1,5 +1,5 @@
-from project_name.base import NAME
+from ughub_py.base import NAME
 
 
 def test_base():
-    assert NAME == "project_name"
+    assert NAME == "ughub_py"
