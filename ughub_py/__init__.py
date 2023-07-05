@@ -1,2 +1,2 @@
-from nira import Nira
+from .nira import Nira
 nira = Nira()

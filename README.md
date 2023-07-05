@@ -15,14 +15,10 @@ pip install ughub_py
 ## Usage
 
 ```py
-from ughub_py import Nira
+from ughub_py import nira
 
-
-base_url = "https://api.nira.com"
-auth_token = "your_auth_token"
-
-nira_api = NiraApi(base_url, auth_token)
-person_data = nira_api.get_person(person_id)
+person_nin = "CM....."
+person_data = nira.get_person(person_nin)
 
 ```
 
