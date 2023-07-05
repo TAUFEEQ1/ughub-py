@@ -1,71 +1,62 @@
 import requests
 import json
+import os
+import base64
+from typing import TypedDict
 
-class Nira:
-    def __init__(self, base_url, auth_token, sandbox=False):
-        self.base_url = base_url
-        self.headers = self._generate_headers(auth_token)
-        self.sandbox = sandbox
-
-    def _generate_headers(self, auth_token):
-        # Generate NIRA API headers using the auth token
-        headers = {
-            "Authorization": f"Bearer {auth_token}",
-            # Add other required headers
-        }
-        return headers
-
-    def _make_request(self, method, endpoint, params=None, payload=None):
-        if self.sandbox:
-            # Mock the response based on the endpoint
-            response_data = self._mock_response(endpoint)
-            return response_data
-
-        url = self.base_url + endpoint
-        response = requests.request(method, url, headers=self.headers, params=params, json=payload)
-
-        if response.status_code == 200:
-            try:
-                data = response.json()
-                return data
-            except json.JSONDecodeError:
-                print("Error: Invalid JSON response.")
-                return None
-        else:
-            print(f"Error: Request failed with status code {response.status_code}.")
-            return None
-        
-    def get_person(self, person_id):
-        # GET /getPerson
-        endpoint = "/getPerson"
-        params = {
-            "personId": person_id
-        }
-        return self._make_request("GET", endpoint, params)
+CredsDict = TypedDict("CredsDict",{"NIRA AUTH FORWARD":str,"CREATED DATE":str,"NONCE":str})
     
-    def _mock_response(self, endpoint):
-        # Implement logic to mock the response based on the endpoint
-        # Return the mocked response data
-        if endpoint == "/getPerson":
-            mocked_data = {
-                "name": "John Doe",
-                "age": 30,
-                # Add other mocked data fields
-            }
-            return mocked_data
-        elif endpoint == "/getIdCard":
-            # Mock response for getIdCard endpoint
-            # ...
-            pass
-        elif endpoint == "/getPlaceOfResidence":
-            # Mock response for getPlaceOfResidence endpoint
-            # ...
-            pass
-        else:
-            print("Error: No mocked response defined for the endpoint.")
-            return None
+class Nira:
+    ughub_username = os.getenv("UGHUB_USERNAME")
+    ughub_password = os.getenv("UGHUB_PASSWORD")
+    
+    username = os.getenv("NIRA_USERNAME")
+    password = os.getenv("NIRA_PASSWORD") 
+     
+    def get_nira_token(self)->str:
+        url = 'https://api-uat.integration.go.ug/token'
+        payload = 'grant_type=client_credentials'
+        creds = base64.encode(f"{self.ughub_username}:{self.ughub_password}")
+        headers = {
+            'Authorization': f'Basic {creds}',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
 
-    # ... other methods ...
+        response = requests.post(url, headers=headers, data=payload)
+        res = response.json()
+        access_token = res['access_token']
+        return access_token
+    
+    def get_credentials(self)->CredsDict:
+        token = self.get_nira_token()
+        url = 'https://api-uat.integration.go.ug/t/nira.go.ug/nitaauth/1.0.0/api/v1/access'
+        payload = {
+            "username": self.username,
+            "password": self.password
+        }
+        headers = {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+        }
 
-
-
+        response = requests.post(url, headers=headers, json=payload)
+        res = response.json()
+        return res
+    
+    def get_person_details(self,nin:str):
+        creds = self.get_credentials()
+        token = self.get_nira_token()
+        nonce = creds['NONCE']
+        timestamp = creds['CREATED DATE']
+        nira_auth_forward = creds['NIRA AUTH FORWARD']
+        url = 'https://api-uat.integration.go.ug/t/nira.go.ug/nira-api/1.0.0/getPerson?nationalId=' + nin
+        headers = {
+            'Authorization': 'Bearer ' + token,
+            'nira-auth-forward': nira_auth_forward,
+            'nira-nonce': nonce,
+            'nira-created': timestamp
+        }
+        response = requests.get(url, headers=headers)
+        return response.json()
+    
+    
