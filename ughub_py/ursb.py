@@ -1,6 +1,9 @@
 import base64
 import requests
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class URSBClient:
     def __init__(self):
@@ -62,3 +65,6 @@ class URSBClient:
         # Generic method
         resourcePath = f"/t/ursb.go.ug/ursb-brs-api/1.0.0/entity/get_entity_full/{id}/-/{self.ursb_key}"
         return self.invokeAPIResource(resourcePath)
+
+
+    
