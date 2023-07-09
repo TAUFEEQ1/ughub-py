@@ -15,11 +15,29 @@ CredsDict = TypedDict("CredsDict",{"NIRA AUTH FORWARD":str,"CREATED DATE":str,"N
 class NiraAPI(ABC):
     
     @abstractmethod
-    def get_person(self,nin:str):
+    def get_person(self, nin: str):
+        """
+        Retrieve information about a person based on their national identification number (NIN).
+
+        Args:
+            nin (str): The national identification number of the person.
+
+        Returns:
+            dict: A dictionary containing the person's information.
+        """
         pass
     
     @abstractmethod
-    def get_id_card(self,cardNumber:str):
+    def get_id_card(self, cardNumber: str):
+        """
+        Retrieve information about an identification card based on its card number.
+
+        Args:
+            cardNumber (str): The card number of the identification card.
+
+        Returns:
+            dict: A dictionary containing the card's information.
+        """
         pass
     
     
